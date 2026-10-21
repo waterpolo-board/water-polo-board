@@ -1,0 +1,6 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "board", "runtimeExecutable": "node", "runtimeArgs": ["dev-server.js"], "port": 5173 }
+  ]
+}
