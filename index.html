@@ -3,28 +3,37 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>לוח טקטי כדורמים</title>
+  <meta name="theme-color" content="#1e2c35">
+  <title>לוח כדורמים</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
-    <h1>לוח טקטי כדורמים</h1>
-    <div class="toolbar">
-      <button data-mode="move" class="active" title="הזזת שחקנים וכדור">✋ הזזה</button>
-      <button data-mode="arrow" title="ציור חץ תנועה">➜ חץ</button>
-      <button data-mode="pass" title="ציור קו מסירה">⋯ מסירה</button>
-      <span class="sep"></span>
-      <button id="undo" title="ביטול ציור אחרון">↶ בטל</button>
-      <button id="clear" title="מחיקת כל הציורים">🧹 נקה ציורים</button>
-      <button id="reset" title="החזרת השחקנים למיקום פתיחה">⟲ איפוס</button>
-    </div>
+    <h1>לוח כדורמים</h1>
+    <nav class="toolbar" aria-label="כלים">
+      <div class="group" role="group" aria-label="מצב">
+        <button data-mode="full" aria-pressed="true">בריכה מלאה</button>
+        <button data-mode="6v6" aria-pressed="false">6 על 6</button>
+        <button data-mode="6v5" aria-pressed="false">6 על 5</button>
+      </div>
+      <div class="group" role="group" aria-label="כלי ציור">
+        <button data-tool="move" aria-pressed="true">הזזה</button>
+        <button data-tool="arrow" aria-pressed="false">חץ תנועה</button>
+        <button data-tool="pass" aria-pressed="false">מסירה</button>
+      </div>
+      <div class="group plain">
+        <button id="undo">בטל</button>
+        <button id="clear">נקה ציורים</button>
+        <button id="reset">איפוס מערך</button>
+      </div>
+    </nav>
   </header>
 
   <main>
-    <svg id="board" viewBox="0 0 300 200" aria-label="בריכת כדורמים">
+    <svg id="board" aria-label="בריכת כדורמים">
       <defs>
-        <marker id="head" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-          <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+        <marker id="head" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto-start-reverse">
+          <path d="M0,1 L9,5 L0,9 z" fill="currentColor"/>
         </marker>
       </defs>
       <g id="pool"></g>
