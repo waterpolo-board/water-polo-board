@@ -1,0 +1,177 @@
+/* פלטה רגועה: צבעים עמומים, ניגודיות גבוהה רק במה שחייבים לראות מיד */
+:root {
+  --deck: #1e2c35;
+  --deck-raised: #26363f;
+  --deck-hover: #2d3e48;
+  --ink: #dfe6e8;
+  --ink-soft: #9fb1b8;
+  --accent: #8fbac6;
+  --accent-ink: #15232b;
+  --hairline: #ffffff14;
+
+  --water: #4f8799;
+  --lane: #ffffff12;
+  --line-2m: #cf8f86;
+  --line-5m: #d3bf80;
+  --line-half: #e6ecee99;
+  --goal: #eef1ef;
+
+  --cap-white: #f1eee6;
+  --cap-white-ink: #2f4656;
+  --cap-blue: #2c475e;
+  --cap-blue-ink: #e7edf0;
+  --cap-goalie: #c06a60;
+  --cap-goalie-ink: #fbf5f2;
+  --cap-edge: #13202840;
+  --ball: #e6cd78;
+  --ball-ink: #8a7536;
+  --ball-shadow: #10202a;
+
+  --move: #f1eee6;
+  --pass: #e6cd78;
+  --wake-w: #f4f1ea;
+  --wake-b: #a9c9d8;
+  --ripple: #e9f2f4;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* { box-sizing: border-box; }
+
+html { color-scheme: dark; }
+
+body {
+  margin: 0;
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  background: var(--deck);
+  color: var(--ink);
+  font-family: system-ui, "Segoe UI", Roboto, "Noto Sans Hebrew", Arial, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+::selection { background: var(--accent); color: var(--accent-ink); }
+
+/* ---------- סרגלים ---------- */
+.topbar,
+.timeline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  padding: 10px max(16px, env(safe-area-inset-right)) 10px max(16px, env(safe-area-inset-left));
+}
+.topbar { justify-content: space-between; border-bottom: 1px solid var(--hairline); }
+.timeline { border-top: 1px solid var(--hairline); padding-bottom: max(10px, env(safe-area-inset-bottom)); }
+
+h1 { margin: 0; font-size: 1.1rem; font-weight: 600; }
+
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+.group { display: flex; gap: 2px; padding: 3px; border-radius: 12px; background: var(--deck-raised); }
+.group.plain { background: none; padding: 0; gap: 6px; }
+
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font: inherit;
+  font-size: 0.95rem;
+  min-height: 48px;
+  min-width: 48px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--deck-raised);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background-color 160ms ease-out, color 160ms ease-out, transform 120ms ease-out, opacity 200ms ease-out;
+}
+.group button { background: transparent; color: var(--ink-soft); }
+button:hover { background: var(--deck-hover); color: var(--ink); }
+button:active { transform: scale(0.96); }
+button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+button:disabled { opacity: 0.38; cursor: default; transform: none; background: var(--deck-raised); }
+.group button:disabled { background: transparent; }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.quiet { background: transparent; color: var(--ink-soft); }
+
+button.primary { background: var(--accent); color: var(--accent-ink); font-weight: 600; padding-inline: 18px 20px; }
+button.primary:hover { background: #a2c7d1; color: var(--accent-ink); }
+
+.icon { width: 18px; height: 18px; fill: currentColor; flex: none; }
+#play .icon-pause { display: none; }
+#play.is-playing .icon-play { display: none; }
+#play.is-playing .icon-pause { display: block; }
+
+.steps-wrap { flex: 1; display: flex; align-items: center; gap: 10px; min-width: 0; }
+.steps-title { color: var(--ink-soft); font-size: 0.9rem; }
+.steps { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 2px; }
+.steps::-webkit-scrollbar { display: none; }
+.step-chip {
+  min-width: 48px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+}
+.step-chip[aria-current="step"] { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+
+/* בזמן ניגון: כלי העריכה נרגעים, הבריכה במרכז */
+body.is-playing .topbar .toolbar,
+body.is-playing #add-step,
+body.is-playing #delete-step { opacity: 0.35; pointer-events: none; }
+body.is-playing .step-chip { pointer-events: none; }
+
+/* ---------- הבריכה ---------- */
+.stage { min-height: 0; padding: 8px 12px; }
+#board { display: block; width: 100%; height: 100%; touch-action: none; }
+
+.water { fill: var(--water); }
+.lane { stroke: var(--lane); stroke-width: 0.06; }
+.mark { stroke-width: 0.1; stroke-dasharray: 0.5 0.42; }
+.line-2m { stroke: var(--line-2m); }
+.line-5m { stroke: var(--line-5m); }
+.line-half { stroke: var(--line-half); }
+.goal { fill: none; stroke: var(--goal); stroke-width: 0.16; stroke-linejoin: round; }
+
+.piece { cursor: grab; }
+.piece .hit { fill: transparent; }
+.piece .cap { stroke: var(--cap-edge); stroke-width: 0.07; transition: r 160ms var(--ease-out); }
+.piece text { pointer-events: none; font-size: 0.72px; font-weight: 600; }
+.team-w .cap { fill: var(--cap-white); }
+.team-w text { fill: var(--cap-white-ink); }
+.team-b .cap { fill: var(--cap-blue); }
+.team-b text { fill: var(--cap-blue-ink); }
+.goalie .cap { fill: var(--cap-goalie); }
+.goalie text { fill: var(--cap-goalie-ink); }
+.piece.dragging { cursor: grabbing; }
+.piece.dragging .cap { r: 0.78px; }
+
+.ball-body { fill: var(--ball); stroke: var(--ball-ink); stroke-width: 0.06; }
+.ball-seam { fill: none; stroke: var(--ball-ink); stroke-width: 0.05; opacity: 0.7; }
+.ball-shadow { fill: var(--ball-shadow); }
+
+.drawing { stroke-width: 0.14; stroke-linecap: round; fill: none; }
+.drawing.move { stroke: var(--move); }
+.drawing.pass { stroke: var(--pass); stroke-dasharray: 0.34 0.3; }
+.head.move { fill: var(--move); }
+.head.pass { fill: var(--pass); }
+
+.wake { stroke-width: 1.05; stroke-linecap: round; fill: none; }
+.wake-grad.team-w stop { stop-color: var(--wake-w); }
+.wake-grad.team-b stop { stop-color: var(--wake-b); }
+.wake-grad.ball stop { stop-color: var(--ball); }
+.wake-tail { stop-opacity: 0; }
+.wake-head { stop-opacity: 0.32; }
+.wake.ball { stroke-width: 0.22; }
+.ripple { fill: none; stroke: var(--ripple); stroke-width: 0.07; }
+
+@media (max-width: 900px) {
+  h1 { display: none; }
+  .topbar { justify-content: center; }
+  button { padding: 0 12px; }
+}

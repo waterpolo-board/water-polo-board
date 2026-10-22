@@ -2,13 +2,13 @@
 <html lang="he" dir="rtl">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#1e2c35">
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <title>לוח כדורמים</title>
-  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
+  <header class="topbar">
     <h1>לוח כדורמים</h1>
     <nav class="toolbar" aria-label="כלים">
       <div class="group" role="group" aria-label="מצב">
@@ -17,31 +17,41 @@
         <button data-mode="6v5" aria-pressed="false">6 על 5</button>
       </div>
       <div class="group" role="group" aria-label="כלי ציור">
-        <button data-tool="move" aria-pressed="true">הזזה</button>
-        <button data-tool="arrow" aria-pressed="false">חץ תנועה</button>
+        <button data-tool="drag" aria-pressed="true">הזזה</button>
+        <button data-tool="move" aria-pressed="false">חץ תנועה</button>
         <button data-tool="pass" aria-pressed="false">מסירה</button>
       </div>
       <div class="group plain">
         <button id="undo">בטל</button>
-        <button id="clear">נקה ציורים</button>
+        <button id="redo">חזור</button>
+        <button id="clear">נקה חצים</button>
         <button id="reset">איפוס מערך</button>
       </div>
     </nav>
   </header>
 
-  <main>
-    <svg id="board" aria-label="בריכת כדורמים">
-      <defs>
-        <marker id="head" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto-start-reverse">
-          <path d="M0,1 L9,5 L0,9 z" fill="currentColor"/>
-        </marker>
-      </defs>
-      <g id="pool"></g>
-      <g id="drawings"></g>
-      <g id="pieces"></g>
-    </svg>
+  <main class="stage">
+    <svg id="board" role="img" aria-label="בריכת כדורמים"></svg>
   </main>
 
-  <script src="app.js"></script>
+  <footer class="timeline" aria-label="מהלך">
+    <button id="play" class="primary">
+      <svg class="icon icon-play" viewBox="0 0 20 20" aria-hidden="true"><path d="M6 4.2v11.6a.8.8 0 0 0 1.2.7l9.2-5.8a.8.8 0 0 0 0-1.4L7.2 3.5a.8.8 0 0 0-1.2.7z"/></svg>
+      <svg class="icon icon-pause" viewBox="0 0 20 20" aria-hidden="true"><rect x="5" y="4" width="3.4" height="12" rx="1"/><rect x="11.6" y="4" width="3.4" height="12" rx="1"/></svg>
+      <span class="label">הפעל מהלך</span>
+    </button>
+    <button id="speed" class="quiet">מהירות 1×</button>
+    <div class="steps-wrap">
+      <span class="steps-title">שלבים</span>
+      <nav id="steps" class="steps" aria-label="שלבים"></nav>
+    </div>
+    <button id="add-step">
+      <svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      שלב
+    </button>
+    <button id="delete-step" class="quiet">מחק שלב</button>
+  </footer>
+
+  <script type="module" src="/src/main.ts"></script>
 </body>
 </html>
