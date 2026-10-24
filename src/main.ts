@@ -1,4 +1,5 @@
 import "./style.css";
+import "./library.css";
 import { Board } from "./board";
 import { cameraFor, clampToPool, distance, lerpCamera, type Camera, type Point } from "./geometry";
 import { formation } from "./formations";
@@ -6,6 +7,8 @@ import { History } from "./history";
 import { MODE_VIEW, clone, isModeId, type Drawing, type DrawingKind, type ModeId, type Play, type Step } from "./model";
 import { ease, prefersReducedMotion, tween, wait, type Tween } from "./motion";
 import { frameBetween, frameOf, transitionDuration, type Frame, type PoseLike } from "./playback";
+import { initLibrary } from "./libraryUi";
+import type { SavedPlay } from "./library";
 import { load, save, type Saved } from "./storage";
 
 const $ = <T extends Element>(sel: string) => document.querySelector<T>(sel)!;
@@ -21,6 +24,7 @@ const initial: Saved =
 
 let play: Play = initial.play;
 let cur = initial.cur;
+let libraryId: string | undefined = initial.libraryId; // המהלך הפתוח שמור בספרייה?
 let tool: "drag" | DrawingKind = "drag";
 let speed = 1;
 let shown: Frame = frameOf(play.steps[cur]); // מה שמוצג כרגע על המסך, גם באמצע תנועה
@@ -31,7 +35,7 @@ let motion: Tween | null = null;   // תנועת השחקנים
 let cameraMotion: Tween | null = null;
 
 const step = (): Step => play.steps[cur];
-const snapshot = (): Saved => ({ play, cur });
+const snapshot = (): Saved => ({ play, cur, libraryId });
 
 function commit() {
   save(snapshot());
@@ -91,6 +95,7 @@ function setMode(mode: ModeId) {
   mutate(() => {
     play = { mode, steps: [formation(mode)] };
     cur = 0;
+    libraryId = undefined; // לוח חדש, לא קשור למהלך שמור
   });
   board.fadeDrawings();
   moveCamera(cameraFor(MODE_VIEW[mode], board.size()));
@@ -149,10 +154,26 @@ function restore(s: Saved | undefined) {
   const modeChanged = s.play.mode !== play.mode;
   play = s.play;
   cur = s.cur;
+  libraryId = s.libraryId;
   commit();
   if (modeChanged) moveCamera(cameraFor(MODE_VIEW[play.mode], board.size()));
   board.setDrawings(step().drawings);
   glideTo(step(), { duration: 420 });
+}
+
+// ---------- ספרייה ----------
+function openSaved(entry: SavedPlay, autoplay: boolean) {
+  stopPlayback();
+  mutate(() => {
+    play = clone(entry.play);
+    cur = 0;
+    libraryId = entry.id;
+  });
+  moveCamera(cameraFor(MODE_VIEW[play.mode], board.size()));
+  board.setDrawings(autoplay ? [] : step().drawings, !autoplay);
+  glideTo(step(), { duration: 760, stagger: 0.015 }).then((ok) => {
+    if (ok && autoplay) startPlayback();
+  });
 }
 
 // ---------- ניגון מהלך ----------
@@ -264,6 +285,7 @@ svg.addEventListener("pointercancel", endPointer);
 const stepsNav = $<HTMLElement>("#steps");
 const playBtn = $<HTMLButtonElement>("#play");
 const speedBtn = $<HTMLButtonElement>("#speed");
+const playName = $<HTMLElement>("#play-name");
 
 function renderUi() {
   for (const b of $$<HTMLButtonElement>("[data-mode]")) b.setAttribute("aria-pressed", String(b.dataset.mode === play.mode));
@@ -276,6 +298,14 @@ function renderUi() {
   playBtn.querySelector(".label")!.textContent = playing ? "עצור" : "הפעל מהלך";
   document.body.classList.toggle("is-playing", playing);
   speedBtn.textContent = `מהירות ${speed}×`;
+
+  // שם המהלך הפתוח, וסימון אם יש שינויים שעוד לא נשמרו
+  const saved = library?.entry(libraryId);
+  playName.textContent = saved ? saved.name : "";
+  playName.hidden = !saved;
+  const dirty = !!saved && JSON.stringify(saved.play) !== JSON.stringify(play);
+  playName.classList.toggle("dirty", dirty);
+  playName.title = dirty ? "יש שינויים שלא נשמרו" : "";
 
   // כפתורי שלבים: משתמשים מחדש בקיימים כדי לא לשבור אנימציות
   const chips = [...stepsNav.children] as HTMLButtonElement[];
@@ -333,7 +363,23 @@ board.reducedMotion = motionQuery.matches;
 motionQuery.addEventListener("change", () => (board.reducedMotion = motionQuery.matches));
 
 // ---------- פתיחה ----------
+let library: Awaited<ReturnType<typeof initLibrary>> | null = null;
+
 board.setCamera(camera);
 board.setDrawings(step().drawings);
 show(shown);
 renderUi();
+
+initLibrary({
+  current: () => ({ play, libraryId }),
+  open: openSaved,
+  linked: (id) => {
+    libraryId = id;
+    commit();
+  },
+}).then((lib) => {
+  library = lib;
+  $("#open-library").addEventListener("click", () => lib.openPanel());
+  $("#save-play").addEventListener("click", () => lib.openPanel(true));
+  renderUi();
+});

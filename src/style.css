@@ -38,6 +38,9 @@
 
 * { box-sizing: border-box; }
 
+/* hidden תמיד מסתיר, גם על אלמנטים עם display משלהם (כפתורים, מגירה) */
+[hidden] { display: none !important; }
+
 html { color-scheme: dark; }
 
 body {

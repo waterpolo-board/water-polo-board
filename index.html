@@ -9,7 +9,14 @@
 </head>
 <body>
   <header class="topbar">
-    <h1>לוח כדורמים</h1>
+    <div class="title">
+      <button id="open-library" class="library-btn">
+        <svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="3" width="3.2" height="14" rx="1"/><rect x="8" y="3" width="3.2" height="14" rx="1"/><rect x="12.6" y="3.6" width="3.2" height="13.6" rx="1" transform="rotate(-14 14.2 10.4)"/></svg>
+        ספרייה
+      </button>
+      <h1>לוח כדורמים</h1>
+      <span id="play-name" class="play-name" hidden></span>
+    </div>
     <nav class="toolbar" aria-label="כלים">
       <div class="group" role="group" aria-label="מצב">
         <button data-mode="full" aria-pressed="true">בריכה מלאה</button>
@@ -50,7 +57,50 @@
       שלב
     </button>
     <button id="delete-step" class="quiet">מחק שלב</button>
+    <button id="save-play">
+      <svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 3h8.6L17 6.4V16a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><rect x="6.5" y="11" width="7" height="4" rx=".6"/></svg>
+      שמור
+    </button>
   </footer>
+
+  <div id="scrim" class="scrim" hidden></div>
+  <aside id="library" class="drawer" aria-label="ספריית מהלכים" hidden>
+    <div class="drawer-head">
+      <h2>ספריית מהלכים</h2>
+      <button id="lib-close" class="quiet">סגור</button>
+    </div>
+    <button id="show-save" class="show-save">
+      <svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      שמירת המהלך שעל הלוח
+    </button>
+    <form id="save-form" class="save-form" hidden>
+      <label class="field">
+        <span>שמירת המהלך שעל הלוח</span>
+        <input id="save-name" name="name" maxlength="60" autocomplete="off" enterkeyhint="done" placeholder="שם, למשל: 6 על 5 — העברת צד">
+      </label>
+      <div id="save-tags" class="chips" role="group" aria-label="תגיות"></div>
+      <div class="save-actions">
+        <button id="save-update" type="button" class="primary" hidden>עדכן את השמור</button>
+        <button id="save-new" type="submit">שמור בספרייה</button>
+      </div>
+    </form>
+    <div class="lib-tools">
+      <input id="lib-search" type="search" placeholder="חיפוש לפי שם" aria-label="חיפוש מהלך" autocomplete="off">
+      <div id="lib-filter" class="chips" role="group" aria-label="סינון לפי תגית"></div>
+    </div>
+    <ul id="lib-list" class="lib-list"></ul>
+    <p id="lib-empty" class="empty" hidden></p>
+    <div class="drawer-foot">
+      <button id="lib-export" class="quiet">ייצוא גיבוי</button>
+      <button id="lib-import" class="quiet">ייבוא גיבוי</button>
+      <input id="lib-file" type="file" accept="application/json,.json" hidden>
+    </div>
+  </aside>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden>
+    <span class="toast-text"></span>
+    <button class="toast-action" hidden>ביטול</button>
+  </div>
 
   <script type="module" src="/src/main.ts"></script>
 </body>
