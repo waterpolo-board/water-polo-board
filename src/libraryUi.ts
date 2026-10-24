@@ -8,6 +8,7 @@ import {
 import { clone, type Play } from "./model";
 import { prefersReducedMotion } from "./motion";
 import { thumbnailSvg } from "./thumbnail";
+import { shareVideo } from "./videoUi";
 
 export interface LibraryHost {
   current(): { play: Play; libraryId?: string };
@@ -238,6 +239,7 @@ export async function initLibrary(host: LibraryHost) {
       const actions = document.createElement("div");
       actions.className = "card-actions";
       actions.append(
+        textButton("שתף כסרטון", () => { closePanel(); shareVideo(e.play, e.name); }),
         textButton("שנה שם", () => { renaming = e.id; expanded = null; render(); }),
         textButton("שכפל", () => duplicate(e)),
         textButton("מחק", () => remove(e), "danger"),

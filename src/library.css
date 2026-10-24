@@ -188,3 +188,36 @@ input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 @media (prefers-reduced-motion: reduce) {
   .drawer, .scrim, .toast { transition: none; }
 }
+
+/* ---------- סרטון ---------- */
+.video-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: var(--scrim);
+}
+.video-card {
+  width: min(560px, 100%);
+  display: grid;
+  gap: 14px;
+  padding: 22px;
+  border-radius: 18px;
+  background: var(--deck-raised);
+  box-shadow: 0 20px 60px #000a;
+}
+.video-card h2 { margin: 0; font-size: 1.2rem; font-weight: 600; }
+.video-sub { margin: -6px 0 0; color: var(--ink-soft); overflow-wrap: anywhere; }
+.video-progress { height: 8px; border-radius: 99px; background: var(--deck); overflow: hidden; }
+.video-bar {
+  height: 100%;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: right; /* מתמלא מימין לשמאל */
+  transition: transform 120ms linear;
+}
+.video-preview { width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; background: var(--deck); }
+.video-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.video-actions .primary { min-width: 120px; }

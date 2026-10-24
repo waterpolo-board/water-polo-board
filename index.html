@@ -63,6 +63,10 @@
       שלב
     </button>
     <button id="delete-step" class="quiet">מחק שלב</button>
+    <button id="video-play" title="יצירת סרטון מהמהלך לשיתוף">
+      <svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="5" width="11" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M13.5 9l4-2.4v6.8l-4-2.4z"/></svg>
+      סרטון
+    </button>
     <button id="save-play">
       <svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 3h8.6L17 6.4V16a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><rect x="6.5" y="11" width="7" height="4" rx=".6"/></svg>
       שמור
@@ -106,6 +110,22 @@
   <div id="cap-picker" class="cap-picker" role="dialog" aria-modal="false" aria-labelledby="cap-picker-title" hidden>
     <div id="cap-picker-title" class="cap-picker-title"></div>
     <div class="cap-grid"></div>
+  </div>
+
+  <div id="video-dialog" class="video-dialog" role="dialog" aria-modal="true" aria-labelledby="video-title" hidden>
+    <div class="video-card">
+      <h2 id="video-title">מכין סרטון…</h2>
+      <p id="video-sub" class="video-sub"></p>
+      <div id="video-progress" class="video-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div id="video-bar" class="video-bar"></div>
+      </div>
+      <video id="video-preview" class="video-preview" playsinline muted loop hidden></video>
+      <div class="video-actions">
+        <button id="video-share" class="primary" hidden>שתף</button>
+        <button id="video-save" hidden>שמור לקובץ</button>
+        <button id="video-close" class="quiet">ביטול</button>
+      </div>
+    </div>
   </div>
 
   <div id="toast" class="toast" role="status" aria-live="polite" hidden>

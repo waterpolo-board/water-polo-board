@@ -7,7 +7,8 @@ import { History } from "./history";
 import { CAP_NUMBERS, MODE_VIEW, ROSTER, capOf, clone, isModeId, withCapNumber, type Drawing, type DrawingKind, type ModeId, type Play, type Step } from "./model";
 import { ease, prefersReducedMotion, tween, wait, type Tween } from "./motion";
 import { frameBetween, frameOf, transitionDuration, type Frame, type PoseLike } from "./playback";
-import { initLibrary } from "./libraryUi";
+import { initLibrary, toast } from "./libraryUi";
+import { shareVideo } from "./videoUi";
 import type { SavedPlay } from "./library";
 import { load, save, type Saved } from "./storage";
 
@@ -461,5 +462,10 @@ initLibrary({
   library = lib;
   $("#open-library").addEventListener("click", () => lib.openPanel());
   $("#save-play").addEventListener("click", () => lib.openPanel(true));
+  $("#video-play").addEventListener("click", () => {
+    if (play.steps.length < 2) return toast("לסרטון צריך לפחות שני שלבים — הוסיפו שלב עם \"+ שלב\"");
+    stopPlayback();
+    shareVideo(clone(play), lib.entry(libraryId)?.name ?? "מהלך");
+  });
   renderUi();
 });
