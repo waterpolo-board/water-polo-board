@@ -32,6 +32,6 @@
 ## שלב 4 — אפליקציה ופרסום (3.5)
 - [x] PWA: manifest, אייקונים, Service Worker, עבודה בלי אינטרנט (נבדק במצב offline)
 - [ ] Wake Lock
-- [x] ריפו ב-GitHub + פרסום ב-GitHub Pages אוטומטי — https://omer011210.github.io/water-polo-board/
+- [x] ריפו ב-GitHub + פרסום ב-GitHub Pages אוטומטי — https://waterpolo-board.github.io/water-polo-board/
 - [ ] בדיקות Playwright לזרימות העיקריות
 - [ ] בדיקה על טאבלט אנדרואיד אמיתי + "מבחן המאמן"
