@@ -1,7 +1,9 @@
 # לוח כדורמים
 
 לוח טקטי אינטראקטיבי לכדורמים, לטאבלט. בריכה 25×20 מ', מצבי 6 על 6 ו-6 על 5, מהלכים מונפשים.
-האיפיון המלא ב-[SPEC.md](SPEC.md), התוכנית ב-[tasks/plan.md](tasks/plan.md).
+**האפליקציה:** https://omer011210.github.io/water-polo-board/
+
+האיפיון המלא ב-[SPEC.md](SPEC.md), התוכנית ב-[tasks/plan.md](tasks/plan.md). כל push ל-`main` נבדק, נבנה ומתפרסם אוטומטית.
 
 ## הרצה
 ```

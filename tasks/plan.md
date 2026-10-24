@@ -30,8 +30,8 @@
 - [ ] להשלים ל-8–10 מהלכים מוכנים (כדאי עם המאמן/השחקנים — מה הם באמת משחקים)
 
 ## שלב 4 — אפליקציה ופרסום (3.5)
-- [ ] PWA: manifest, אייקונים, Service Worker, עבודה בלי אינטרנט
+- [x] PWA: manifest, אייקונים, Service Worker, עבודה בלי אינטרנט (נבדק במצב offline)
 - [ ] Wake Lock
-- [ ] ריפו ב-GitHub + פרסום ב-GitHub Pages אוטומטי
+- [x] ריפו ב-GitHub + פרסום ב-GitHub Pages אוטומטי — https://omer011210.github.io/water-polo-board/
 - [ ] בדיקות Playwright לזרימות העיקריות
 - [ ] בדיקה על טאבלט אנדרואיד אמיתי + "מבחן המאמן"
