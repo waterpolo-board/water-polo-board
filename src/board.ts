@@ -20,7 +20,7 @@ function el<K extends keyof SVGElementTagNameMap>(tag: K, attrs: Attrs = {}, par
   return node;
 }
 
-interface PieceNode { g: SVGGElement; upright: SVGGElement }
+interface PieceNode { g: SVGGElement; upright: SVGGElement; text: SVGTextElement }
 interface Wake { line: SVGLineElement; grad: SVGLinearGradientElement; from: Point }
 
 let uid = 0;
@@ -60,7 +60,7 @@ export class Board {
       el("circle", { class: "cap", r: CAP_R }, upright);
       const t = el("text", { "text-anchor": "middle", "dominant-baseline": "central" }, upright);
       t.textContent = String(p.cap);
-      this.pieces.set(p.id, { g, upright });
+      this.pieces.set(p.id, { g, upright, text: t });
     }
 
     const bg = el("g", { class: "piece ball", "data-id": "ball" }, this.pieceLayer);
@@ -114,6 +114,23 @@ export class Board {
     this.ball.body.setAttribute("transform", `translate(0 ${-l * 1.1}) scale(${1 + l * 0.45})`);
     this.ball.shadow.setAttribute("transform", `scale(${1 - l * 0.3})`);
     this.ball.shadow.style.opacity = String(0.55 - l * 0.3);
+  }
+
+  /** המספרים על הכובעים. */
+  setLabels(capOf: (id: string) => number) {
+    for (const [id, node] of this.pieces) node.text.textContent = String(capOf(id));
+  }
+
+  /** מלבן הכובע על המסך — כדי למקם לידו את בורר המספרים. */
+  capRect(id: string): DOMRect | null {
+    return this.pieces.get(id)?.upright.querySelector(".cap")?.getBoundingClientRect() ?? null;
+  }
+
+  /** הבהוב קטן כשהמספר על כובע משתנה. */
+  pulseCap(id: string) {
+    const cap = this.pieces.get(id)?.upright.querySelector<SVGCircleElement>(".cap");
+    if (!cap || this.reducedMotion) return;
+    cap.animate([{ transform: "scale(1.35)" }, { transform: "scale(1)" }], { duration: 380, easing: "cubic-bezier(0.16, 1, 0.3, 1)" });
   }
 
   /** נקודת מגע → מטרים בבריכה. */

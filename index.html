@@ -32,6 +32,7 @@
         <button data-tool="drag" aria-pressed="true">הזזה</button>
         <button data-tool="move" aria-pressed="false">חץ תנועה</button>
         <button data-tool="pass" aria-pressed="false">מסירה</button>
+        <button data-tool="numbers" aria-pressed="false">מספרים</button>
       </div>
       <div class="group plain">
         <button id="undo">בטל</button>
@@ -101,6 +102,11 @@
       <input id="lib-file" type="file" accept="application/json,.json" hidden>
     </div>
   </aside>
+
+  <div id="cap-picker" class="cap-picker" role="dialog" aria-modal="false" aria-labelledby="cap-picker-title" hidden>
+    <div id="cap-picker-title" class="cap-picker-title"></div>
+    <div class="cap-grid"></div>
+  </div>
 
   <div id="toast" class="toast" role="status" aria-live="polite" hidden>
     <span class="toast-text"></span>

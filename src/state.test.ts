@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { formation } from "./formations";
 import { History } from "./history";
-import { ROSTER, type Play } from "./model";
+import { ROSTER, capOf, withCapNumber, type Play } from "./model";
 import { parseSaved } from "./storage";
 
 describe("formations", () => {
@@ -64,5 +64,35 @@ describe("parseSaved", () => {
 
   it("clamps a bad step index", () => {
     expect(parseSaved({ play, cur: 7 })?.cur).toBe(0);
+  });
+});
+
+describe("cap numbers", () => {
+  const base: Play = { mode: "6v6", steps: [formation("6v6")] };
+
+  it("defaults to the roster numbers", () => {
+    expect(capOf(base, "w3")).toBe(3);
+  });
+
+  it("swaps with a teammate instead of duplicating a number", () => {
+    const labels = withCapNumber(base, "w3", 5);
+    const p = { ...base, labels };
+    expect(capOf(p, "w3")).toBe(5);
+    expect(capOf(p, "w5")).toBe(3);
+    expect(capOf(p, "b5")).toBe(5); // הקבוצה השנייה לא מושפעת
+  });
+
+  it("uses free numbers without touching anyone else, and stores only changes", () => {
+    const labels = withCapNumber(base, "w2", 11);
+    expect(labels).toEqual({ w2: 11 });
+    const back = withCapNumber({ ...base, labels }, "w2", 2);
+    expect(back).toEqual({});
+  });
+
+  it("survives save/load and drops junk labels", () => {
+    const p: Play = { ...base, labels: { w2: 11 } };
+    expect(parseSaved(JSON.parse(JSON.stringify({ play: p, cur: 0 })))?.play.labels).toEqual({ w2: 11 });
+    const junk = JSON.parse(JSON.stringify({ play: { ...base, labels: { w2: 0, zz: 4, b3: 2.5, b4: 12 } }, cur: 0 }));
+    expect(parseSaved(junk)?.play.labels).toEqual({ b4: 12 });
   });
 });

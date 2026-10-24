@@ -38,10 +38,21 @@ export function isValidPlay(play: unknown): play is Play {
   );
 }
 
+/** מספרי כובעים: רק מספרים שלמים 1–99 לשחקנים קיימים. */
+export function cleanLabels(play: Play) {
+  if (!play.labels || typeof play.labels !== "object") return void delete play.labels;
+  const ids = new Set(ROSTER.map((r) => r.id));
+  const out: Record<string, number> = {};
+  for (const [id, n] of Object.entries(play.labels)) if (ids.has(id) && Number.isInteger(n) && n >= 1 && n <= 99) out[id] = n;
+  if (Object.keys(out).length) play.labels = out;
+  else delete play.labels;
+}
+
 export function parseSaved(v: unknown): Saved | null {
   if (!v || typeof v !== "object") return null;
   const { play, cur, libraryId } = v as Partial<Saved>;
   if (!isValidPlay(play)) return null;
+  cleanLabels(play);
   const out: Saved = { play, cur: Number.isInteger(cur) && cur! >= 0 && cur! < play.steps.length ? cur! : 0 };
   if (typeof libraryId === "string") out.libraryId = libraryId;
   return out;

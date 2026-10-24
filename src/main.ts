@@ -4,7 +4,7 @@ import { Board } from "./board";
 import { cameraFor, clampToPool, distance, lerpCamera, type Camera, type Point } from "./geometry";
 import { formation } from "./formations";
 import { History } from "./history";
-import { MODE_VIEW, clone, isModeId, type Drawing, type DrawingKind, type ModeId, type Play, type Step } from "./model";
+import { CAP_NUMBERS, MODE_VIEW, ROSTER, capOf, clone, isModeId, withCapNumber, type Drawing, type DrawingKind, type ModeId, type Play, type Step } from "./model";
 import { ease, prefersReducedMotion, tween, wait, type Tween } from "./motion";
 import { frameBetween, frameOf, transitionDuration, type Frame, type PoseLike } from "./playback";
 import { initLibrary } from "./libraryUi";
@@ -25,7 +25,7 @@ const initial: Saved =
 let play: Play = initial.play;
 let cur = initial.cur;
 let libraryId: string | undefined = initial.libraryId; // המהלך הפתוח שמור בספרייה?
-let tool: "drag" | DrawingKind = "drag";
+let tool: "drag" | "numbers" | DrawingKind = "drag";
 let speed = 1;
 let shown: Frame = frameOf(play.steps[cur]); // מה שמוצג כרגע על המסך, גם באמצע תנועה
 let camera: Camera = cameraFor(MODE_VIEW[play.mode], board.size());
@@ -39,6 +39,7 @@ const snapshot = (): Saved => ({ play, cur, libraryId });
 
 function commit() {
   save(snapshot());
+  board.setLabels((id) => capOf(play, id));
   renderUi();
 }
 
@@ -93,7 +94,8 @@ function moveCamera(target: Camera, duration = 820) {
 function setMode(mode: ModeId) {
   stopPlayback();
   mutate(() => {
-    play = { mode, steps: [formation(mode)] };
+    // המספרים שהמאמן בחר נשארים גם כשעוברים מצב
+    play = { mode, steps: [formation(mode)], ...(play.labels ? { labels: play.labels } : {}) };
     cur = 0;
     libraryId = undefined; // לוח חדש, לא קשור למהלך שמור
   });
@@ -227,6 +229,12 @@ let live: { d: Drawing; node: ReturnType<Board["liveDrawing"]> } | null = null;
 
 svg.addEventListener("pointerdown", (e) => {
   if (playing) return stopPlayback();
+  if (tool === "numbers") {
+    const id = board.pieceAt(e.target);
+    if (id && id !== "ball") openCapPicker(id);
+    else closeCapPicker();
+    return;
+  }
   const p = board.toPool(e);
   svg.setPointerCapture(e.pointerId);
   const id = tool === "drag" ? board.pieceAt(e.target) : null;
@@ -237,7 +245,7 @@ svg.addEventListener("pointerdown", (e) => {
     drag = { id, offset: { x: at.x - p.x, y: at.y - p.y }, before: clone(snapshot()) };
     board.raise(id);
     board.setDragging(id);
-  } else if (tool !== "drag") {
+  } else if (tool === "move" || tool === "pass") {
     const d: Drawing = { kind: tool, x1: p.x, y1: p.y, x2: p.x, y2: p.y };
     live = { d, node: board.liveDrawing(d) };
   }
@@ -280,6 +288,72 @@ function endPointer() {
 }
 svg.addEventListener("pointerup", endPointer);
 svg.addEventListener("pointercancel", endPointer);
+
+// ---------- מספרי כובעים ----------
+const picker = $<HTMLElement>("#cap-picker");
+const pickerTitle = $<HTMLElement>("#cap-picker-title");
+const pickerGrid = picker.querySelector<HTMLElement>(".cap-grid")!;
+let pickerFor: string | null = null;
+
+for (const n of CAP_NUMBERS) {
+  const b = document.createElement("button");
+  b.className = "cap-num";
+  b.textContent = String(n);
+  b.dataset.n = String(n);
+  b.addEventListener("click", () => pickerFor && setCap(pickerFor, n));
+  pickerGrid.append(b);
+}
+
+function openCapPicker(id: string) {
+  pickerFor = id;
+  const spec = ROSTER.find((r) => r.id === id)!;
+  const current = capOf(play, id);
+  pickerTitle.textContent = `${spec.team === "w" ? "לבנים" : "כחולים"}${spec.goalie ? " · שוער" : ""} · כרגע ${current}`;
+  const taken = new Set(ROSTER.filter((r) => r.team === spec.team && r.id !== id).map((r) => capOf(play, r.id)));
+  for (const b of pickerGrid.querySelectorAll<HTMLButtonElement>(".cap-num")) {
+    const n = Number(b.dataset.n);
+    b.setAttribute("aria-pressed", String(n === current));
+    b.classList.toggle("taken", taken.has(n)); // תפוס = יתחלף עם חבר הקבוצה
+    b.title = taken.has(n) ? "יתחלף עם השחקן שיש לו את המספר הזה" : "";
+  }
+  picker.hidden = false;
+  // ליד הכובע, בתוך המסך
+  const r = board.capRect(id);
+  const pw = picker.offsetWidth;
+  const ph = picker.offsetHeight;
+  if (r) {
+    const below = r.bottom + 10 + ph < innerHeight;
+    const top = below ? r.bottom + 10 : r.top - 10 - ph;
+    const left = Math.min(innerWidth - pw - 12, Math.max(12, r.left + r.width / 2 - pw / 2));
+    picker.style.top = `${Math.max(12, top)}px`;
+    picker.style.left = `${left}px`;
+  }
+  picker.querySelector<HTMLButtonElement>('[aria-pressed="true"]')?.focus({ preventScroll: true });
+}
+
+function closeCapPicker() {
+  picker.hidden = true;
+  pickerFor = null;
+}
+
+function setCap(id: string, n: number) {
+  closeCapPicker();
+  if (capOf(play, id) === n) return;
+  const before = new Map(ROSTER.map((r) => [r.id, capOf(play, r.id)]));
+  mutate(() => {
+    const labels = withCapNumber(play, id, n);
+    if (Object.keys(labels).length) play.labels = labels;
+    else delete play.labels;
+  });
+  for (const r of ROSTER) if (before.get(r.id) !== capOf(play, r.id)) board.pulseCap(r.id);
+}
+
+document.addEventListener("pointerdown", (e) => {
+  if (!picker.hidden && !picker.contains(e.target as Node) && !svg.contains(e.target as Node)) closeCapPicker();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !picker.hidden) closeCapPicker();
+});
 
 // ---------- ממשק ----------
 const stepsNav = $<HTMLElement>("#steps");
@@ -337,7 +411,12 @@ function pulseNewChip() {
 }
 
 for (const b of $$<HTMLButtonElement>("[data-mode]")) b.addEventListener("click", () => setMode(b.dataset.mode as ModeId));
-for (const b of $$<HTMLButtonElement>("[data-tool]")) b.addEventListener("click", () => { tool = b.dataset.tool as typeof tool; renderUi(); });
+for (const b of $$<HTMLButtonElement>("[data-tool]")) b.addEventListener("click", () => {
+  tool = b.dataset.tool as typeof tool;
+  closeCapPicker();
+  document.body.classList.toggle("tool-numbers", tool === "numbers");
+  renderUi();
+});
 $("#undo").addEventListener("click", () => restore(history.undo(snapshot())));
 $("#redo").addEventListener("click", () => restore(history.redo(snapshot())));
 $("#clear").addEventListener("click", clearDrawings);
@@ -367,6 +446,7 @@ let library: Awaited<ReturnType<typeof initLibrary>> | null = null;
 
 board.setCamera(camera);
 board.setDrawings(step().drawings);
+board.setLabels((id) => capOf(play, id));
 show(shown);
 renderUi();
 

@@ -1,6 +1,6 @@
 // ספריית מהלכים: טיפוסים ולוגיקה טהורה (חיפוש, ייצוא, ייבוא). האחסון עצמו ב-db.ts.
 import { clone, type Play } from "./model";
-import { isValidPlay } from "./storage";
+import { cleanLabels, isValidPlay } from "./storage";
 
 export const TAGS = ["התקפה", "הגנה", "יתרון מספרי", "חסרון מספרי", "פתיחה", "תרגיל"] as const;
 export type Tag = (typeof TAGS)[number];
@@ -59,6 +59,7 @@ export function parseImport(text: string): SavedPlay[] | null {
   const out: SavedPlay[] = [];
   for (const raw of d.plays as Partial<SavedPlay>[]) {
     if (!raw || typeof raw.id !== "string" || typeof raw.name !== "string" || !isValidPlay(raw.play)) continue;
+    cleanLabels(raw.play);
     const now = Date.now();
     out.push({
       id: raw.id,
