@@ -53,6 +53,9 @@ body {
   color: var(--ink);
   font-family: system-ui, "Segoe UI", Roboto, "Noto Sans Hebrew", Arial, sans-serif;
   -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none; /* בלי תפריט "העתק/שמור" בלחיצה ארוכה באייפד */
+  touch-action: manipulation;  /* בלי זום בהקשה כפולה על כפתורים */
+  -webkit-text-size-adjust: 100%;
   -webkit-user-select: none;
   user-select: none;
 }
@@ -68,7 +71,11 @@ body {
   gap: 10px 14px;
   padding: 10px max(16px, env(safe-area-inset-right)) 10px max(16px, env(safe-area-inset-left));
 }
-.topbar { justify-content: space-between; border-bottom: 1px solid var(--hairline); }
+.topbar {
+  justify-content: space-between;
+  border-bottom: 1px solid var(--hairline);
+  padding-top: max(10px, env(safe-area-inset-top)); /* שורת הסטטוס באייפד כשמותקן */
+}
 .timeline { border-top: 1px solid var(--hairline); padding-bottom: max(10px, env(safe-area-inset-bottom)); }
 
 h1 { margin: 0; font-size: 1.1rem; font-weight: 600; }

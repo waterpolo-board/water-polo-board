@@ -36,7 +36,7 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 16px 18px max(16px, env(safe-area-inset-bottom));
+  padding: max(16px, env(safe-area-inset-top)) 18px max(16px, env(safe-area-inset-bottom));
   background: var(--deck);
   border-inline-end: 1px solid var(--hairline);
   box-shadow: -12px 0 40px #0006;
