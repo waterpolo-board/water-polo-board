@@ -19,3 +19,8 @@ npm run build      # בנייה ל-dist/
 - **מהלך:** "+ שלב" משכפל את השלב הנוכחי, מזיזים, ושוב. "הפעל מהלך" מנגן הכול.
 - **בטל / חזור** לכל פעולה. הכול נשמר אוטומטית.
 - **ספרייה:** "שמור" שומר את המהלך עם שם ותגיות. "ספרייה" פותח את הרשימה; ▶ ליד מהלך פותח ומנגן אותו מיד. הכול נשמר על המכשיר. "ייצוא גיבוי" שומר קובץ להעברה לטאבלט אחר.
+- **שפה:** כפתור עב / EN / SR למעלה — עברית (מימין לשמאל), אנגלית וסרבית (לטינית). הבחירה נשמרת במכשיר; בפעם הראשונה נבחרת שפת המכשיר.
+
+## English
+Interactive water polo tactics board for tablets (installable PWA, works offline).
+Live: https://waterpolo-board.github.io/water-polo-board/ — use the **עב / EN / SR** switch at the top for Hebrew, English or Serbian.

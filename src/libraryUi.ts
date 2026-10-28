@@ -1,8 +1,9 @@
 // מגירת הספרייה: שמירה, חיפוש, פתיחה, ניגון בלחיצה אחת, ושכפול/שינוי שם/מחיקה.
 import { allPlays, deletePlay, putPlay, requestPersistence } from "./db";
+import { stepCount, t, type Key } from "./i18n";
 import { examplePlays } from "./examples";
 import {
-  TAGS, cleanName, copyName, createEntry, exportLibrary, filterPlays, mergeImport, newId, parseImport,
+  TAGS, cleanName, copyName, createEntry, exportLibrary, filterPlays, mergeImport, newId, normalizeTags, parseImport,
   type SavedPlay, type Tag,
 } from "./library";
 import { clone, type Play } from "./model";
@@ -47,6 +48,14 @@ export async function initLibrary(host: LibraryHost) {
 
   requestPersistence();
   entries = await allPlays();
+  // מהלכים שנשמרו עם תגיות בעברית (לפני שהיו שפות) — ממירים פעם אחת למזהים
+  for (const e of entries) {
+    const tags = normalizeTags(e.tags);
+    if (tags.join() !== e.tags.join()) {
+      e.tags = tags;
+      await putPlay(e);
+    }
+  }
   if (!localStorage.getItem(SEEDED_KEY)) {
     if (entries.length === 0) {
       for (const e of examplePlays()) await putPlay(e);
@@ -107,8 +116,8 @@ export async function initLibrary(host: LibraryHost) {
       return pickedTags.has(t);
     });
     updateBtn.hidden = !linked;
-    if (linked) updateBtn.textContent = "עדכן את השמור";
-    newBtn.textContent = linked ? "שמור כחדש" : "שמור בספרייה";
+    if (linked) updateBtn.textContent = t("save.update");
+    newBtn.textContent = linked ? t("save.asNew") : t("save.new");
     newBtn.classList.toggle("primary", !linked);
   }
 
@@ -126,7 +135,7 @@ export async function initLibrary(host: LibraryHost) {
     host.linked(entry.id);
     syncSaveForm();
     render(entry.id);
-    toast(`"${entry.name}" נשמר בספרייה`);
+    toast(t("toast.saved", { name: entry.name }));
   }
 
   async function saveUpdate() {
@@ -143,18 +152,20 @@ export async function initLibrary(host: LibraryHost) {
     entries = entries.map((e) => (e.id === updated.id ? updated : e));
     host.linked(updated.id);
     render(updated.id);
-    toast(`"${updated.name}" עודכן`);
+    toast(t("toast.updated", { name: updated.name }));
   }
 
   $("#save-form").addEventListener("submit", (e) => { e.preventDefault(); saveNew(); });
   updateBtn.addEventListener("click", saveUpdate);
 
   // ---------- רשימה ----------
-  renderTagChips(filterEl, (t) => filterTag === t, (t) => {
-    filterTag = filterTag === t ? null : t;
-    render();
-    return filterTag === t;
-  }, true);
+  const buildFilter = () =>
+    renderTagChips(filterEl, (tag) => filterTag === tag, (tag) => {
+      filterTag = filterTag === tag ? null : tag;
+      render();
+      return filterTag === tag;
+    }, true);
+  buildFilter();
   search.addEventListener("input", () => render());
 
   function render(flashId?: string) {
@@ -169,8 +180,8 @@ export async function initLibrary(host: LibraryHost) {
     listEl.replaceChildren(...shown.map((e) => card(e, e.id === currentId)));
     emptyEl.hidden = shown.length > 0;
     emptyEl.textContent = entries.length === 0
-      ? "עוד אין מהלכים שמורים. בנו מהלך על הלוח ושמרו אותו כאן."
-      : "אין מהלכים שמתאימים לחיפוש.";
+      ? t("empty.none")
+      : t("empty.noMatch");
 
     if (flashId && !prefersReducedMotion()) {
       listEl.querySelector(`[data-id="${CSS.escape(flashId)}"]`)?.animate(
@@ -187,7 +198,7 @@ export async function initLibrary(host: LibraryHost) {
 
     const open = document.createElement("button");
     open.className = "card-open";
-    open.setAttribute("aria-label", `פתח את ${e.name}`);
+    open.setAttribute("aria-label", t("card.open", { name: e.name }));
     const thumb = document.createElement("span");
     thumb.className = "thumb";
     thumb.innerHTML = thumbnailSvg(e.play); // נבנה מקוד שלנו בלבד, מספרים בלבד
@@ -198,7 +209,7 @@ export async function initLibrary(host: LibraryHost) {
       name.value = e.name;
       name.maxLength = 60;
       name.className = "rename";
-      name.setAttribute("aria-label", "שם חדש");
+      name.setAttribute("aria-label", t("card.renameLabel"));
       const done = (commit: boolean) => {
         if (renaming !== e.id) return;
         renaming = null;
@@ -216,7 +227,7 @@ export async function initLibrary(host: LibraryHost) {
     }
     const sub = document.createElement("span");
     sub.className = "sub";
-    sub.textContent = [`${e.play.steps.length} שלבים`, ...e.tags].join(" · ");
+    sub.textContent = [stepCount(e.play.steps.length), ...e.tags.map((tag) => t(`tag.${tag}` as Key))].join(" · ");
     meta.append(name, sub);
     open.append(thumb, meta);
     open.addEventListener("click", () => {
@@ -225,11 +236,11 @@ export async function initLibrary(host: LibraryHost) {
       closePanel();
     });
 
-    const play = iconButton("card-play primary", `נגן את ${e.name}`, ICON_PLAY);
+    const play = iconButton("card-play primary", t("card.play", { name: e.name }), ICON_PLAY);
     play.disabled = e.play.steps.length < 2;
     play.addEventListener("click", () => { host.open(e, true); closePanel(); });
 
-    const more = iconButton("card-more quiet", "פעולות נוספות", ICON_MORE);
+    const more = iconButton("card-more quiet", t("card.more"), ICON_MORE);
     more.setAttribute("aria-expanded", String(expanded === e.id));
     more.addEventListener("click", () => { expanded = expanded === e.id ? null : e.id; render(); });
 
@@ -239,10 +250,10 @@ export async function initLibrary(host: LibraryHost) {
       const actions = document.createElement("div");
       actions.className = "card-actions";
       actions.append(
-        textButton("שתף כסרטון", () => { closePanel(); shareVideo(e.play, e.name); }),
-        textButton("שנה שם", () => { renaming = e.id; expanded = null; render(); }),
-        textButton("שכפל", () => duplicate(e)),
-        textButton("מחק", () => remove(e), "danger"),
+        textButton(t("card.video"), () => { closePanel(); shareVideo(e.play, e.name); }),
+        textButton(t("card.rename"), () => { renaming = e.id; expanded = null; render(); }),
+        textButton(t("card.duplicate"), () => duplicate(e)),
+        textButton(t("card.delete"), () => remove(e), "danger"),
       );
       li.append(actions);
     }
@@ -277,8 +288,8 @@ export async function initLibrary(host: LibraryHost) {
     expanded = null;
     syncSaveForm();
     render();
-    toast(`"${e.name}" נמחק`, {
-      label: "ביטול",
+    toast(t("toast.deleted", { name: e.name }), {
+      label: t("toast.undo"),
       run: async () => {
         await putPlay(e);
         entries.push(e);
@@ -294,10 +305,10 @@ export async function initLibrary(host: LibraryHost) {
     const blob = new Blob([exportLibrary(entries)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `לוח-כדורמים-גיבוי-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `${t("backup.file")}-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-    toast(`נשמר קובץ גיבוי עם ${entries.length} מהלכים`);
+    toast(t("toast.exported", { n: entries.length }));
   });
   $("#lib-import").addEventListener("click", () => fileInput.click());
   fileInput.addEventListener("change", async () => {
@@ -305,21 +316,28 @@ export async function initLibrary(host: LibraryHost) {
     fileInput.value = "";
     if (!file) return;
     const incoming = parseImport(await file.text());
-    if (!incoming) return toast("הקובץ הזה הוא לא גיבוי של לוח כדורמים");
+    if (!incoming) return toast(t("toast.notBackup"));
     const toWrite = mergeImport(entries, incoming);
     for (const p of toWrite) await putPlay(p);
     entries = await allPlays();
     render();
-    toast(toWrite.length ? `יובאו ${toWrite.length} מהלכים` : "כל המהלכים בקובץ כבר נמצאים בספרייה");
+    toast(toWrite.length ? t("toast.imported", { n: toWrite.length }) : t("toast.importedNone"));
   });
 
   return {
     openPanel,
     entry: (id: string | undefined) => byId(id),
+    /** אחרי החלפת שפה: בונים מחדש את כל הטקסטים במגירה. */
+    refresh() {
+      buildFilter();
+      syncSaveForm();
+      render();
+    },
   };
 }
 
 // ---------- עזרים ----------
+const labelOf = (tag: Tag) => t(`tag.${tag}` as Key);
 function renderTagChips(
   host: HTMLElement,
   isOn: (t: Tag) => boolean,
@@ -331,7 +349,7 @@ function renderTagChips(
     const all = document.createElement("button");
     all.type = "button";
     all.className = "chip";
-    all.textContent = "הכול";
+    all.textContent = t("all");
     all.setAttribute("aria-pressed", "true");
     all.addEventListener("click", () => {
       for (const t of TAGS) if (isOn(t)) toggle(t);
@@ -343,7 +361,7 @@ function renderTagChips(
     b.type = "button";
     b.className = "chip";
     b.dataset.tag = t;
-    b.textContent = t;
+    b.textContent = labelOf(t);
     b.setAttribute("aria-pressed", String(isOn(t)));
     b.addEventListener("click", () => b.setAttribute("aria-pressed", String(toggle(t))));
     host.append(b);

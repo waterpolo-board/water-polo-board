@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { examplePlays } from "./examples";
 import { formation } from "./formations";
+import { setLang } from "./i18n";
 import { copyName, createEntry, exportLibrary, filterPlays, mergeImport, parseImport } from "./library";
 import { ROSTER } from "./model";
 import { isValidPlay } from "./storage";
@@ -8,15 +9,17 @@ import { thumbnailSvg } from "./thumbnail";
 
 const play = { mode: "6v5" as const, steps: [formation("6v5")] };
 
+beforeAll(() => setLang("he")); // הבדיקות כתובות לטקסטים בעברית
+
 describe("library", () => {
-  const a = createEntry("6 על 5 — העברת צד", ["יתרון מספרי"], play, 1000);
-  const b = createEntry("לחץ במגרש מלא", ["הגנה"], { mode: "full", steps: [formation("full")] }, 2000);
+  const a = createEntry("6 על 5 — העברת צד", ["manUp"], play, 1000);
+  const b = createEntry("לחץ במגרש מלא", ["defense"], { mode: "full", steps: [formation("full")] }, 2000);
 
   it("filters by name and tag, newest first", () => {
     expect(filterPlays([a, b]).map((p) => p.name)).toEqual([b.name, a.name]);
     expect(filterPlays([a, b], "  העברת   צד ")).toEqual([a]);
-    expect(filterPlays([a, b], "", "הגנה")).toEqual([b]);
-    expect(filterPlays([a, b], "העברת", "הגנה")).toEqual([]);
+    expect(filterPlays([a, b], "", "defense")).toEqual([b]);
+    expect(filterPlays([a, b], "העברת", "defense")).toEqual([]);
   });
 
   it("cleans names and stores a copy of the play", () => {
@@ -41,10 +44,10 @@ describe("library", () => {
     expect(parseImport(JSON.stringify({ plays: [] }))).toBeNull();
     const data = JSON.parse(exportLibrary([a, b]));
     delete data.plays[0].play.steps[0].pos.w4;
-    data.plays[1].tags = ["הגנה", "תגית-מומצאת"];
+    data.plays[1].tags = ["הגנה", "תגית-מומצאת"]; // תגית ישנה בעברית + תגית לא מוכרת
     const back = parseImport(JSON.stringify(data))!;
     expect(back.map((p) => p.id)).toEqual([b.id]);
-    expect(back[0].tags).toEqual(["הגנה"]);
+    expect(back[0].tags).toEqual(["defense"]);
   });
 
   it("merges an import: new plays and newer versions only", () => {

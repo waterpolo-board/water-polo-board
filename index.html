@@ -11,43 +11,51 @@
   <meta name="apple-mobile-web-app-title" content="לוח כדורמים">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>לוח כדורמים</title>
+  <script>
+    // כיוון הכתיבה נקבע לפני הציור הראשון, כדי שלא יהיה "קפיצה" בין עברית לאנגלית
+    try {
+      var l = localStorage.getItem("wpb.lang");
+      if (l === "en" || l === "sr") { document.documentElement.lang = l; document.documentElement.dir = "ltr"; }
+    } catch (e) {}
+  </script>
 </head>
 <body>
   <header class="topbar">
     <div class="title">
       <button id="open-library" class="library-btn">
         <svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="3" width="3.2" height="14" rx="1"/><rect x="8" y="3" width="3.2" height="14" rx="1"/><rect x="12.6" y="3.6" width="3.2" height="13.6" rx="1" transform="rotate(-14 14.2 10.4)"/></svg>
-        ספרייה
+        <span data-i18n="library">ספרייה</span>
       </button>
-      <h1>לוח כדורמים</h1>
+      <h1 data-i18n="app.title">לוח כדורמים</h1>
       <span id="play-name" class="play-name" hidden></span>
+      <div id="lang-switch" class="group lang" role="group" data-i18n-aria="app.language" aria-label="שפה"></div>
     </div>
-    <nav class="toolbar" aria-label="כלים">
-      <div class="group" role="group" aria-label="מצב">
-        <button data-mode="full" aria-pressed="true">בריכה מלאה</button>
-        <button data-mode="6v6" aria-pressed="false">6 על 6</button>
-        <button data-mode="6v5" aria-pressed="false">6 על 5</button>
+    <nav class="toolbar" data-i18n-aria="tools" aria-label="כלים">
+      <div class="group" role="group" data-i18n-aria="mode" aria-label="מצב">
+        <button data-mode="full" aria-pressed="true" data-i18n="mode.full">בריכה מלאה</button>
+        <button data-mode="6v6" aria-pressed="false" data-i18n="mode.6v6">6 על 6</button>
+        <button data-mode="6v5" aria-pressed="false" data-i18n="mode.6v5">6 על 5</button>
       </div>
-      <div class="group" role="group" aria-label="כלי ציור">
-        <button data-tool="drag" aria-pressed="true">הזזה</button>
-        <button data-tool="move" aria-pressed="false">חץ תנועה</button>
-        <button data-tool="pass" aria-pressed="false">מסירה</button>
-        <button data-tool="numbers" aria-pressed="false">מספרים</button>
+      <div class="group" role="group" data-i18n-aria="draw" aria-label="כלי ציור">
+        <button data-tool="drag" aria-pressed="true" data-i18n="tool.drag">הזזה</button>
+        <button data-tool="move" aria-pressed="false" data-i18n="tool.move">חץ תנועה</button>
+        <button data-tool="pass" aria-pressed="false" data-i18n="tool.pass">מסירה</button>
+        <button data-tool="numbers" aria-pressed="false" data-i18n="tool.numbers">מספרים</button>
       </div>
       <div class="group plain">
-        <button id="undo">בטל</button>
-        <button id="redo">חזור</button>
-        <button id="clear">נקה חצים</button>
-        <button id="reset">איפוס מערך</button>
+        <button id="undo" data-i18n="undo">בטל</button>
+        <button id="redo" data-i18n="redo">חזור</button>
+        <button id="clear" data-i18n="clear">נקה חצים</button>
+        <button id="reset" data-i18n="reset">איפוס מערך</button>
       </div>
     </nav>
   </header>
 
   <main class="stage">
-    <svg id="board" role="img" aria-label="בריכת כדורמים"></svg>
+    <svg id="board" role="img" data-i18n-aria="board" aria-label="בריכת כדורמים"></svg>
   </main>
 
-  <footer class="timeline" aria-label="מהלך">
+  <footer class="timeline" data-i18n-aria="timeline" aria-label="מהלך">
     <button id="play" class="primary">
       <svg class="icon icon-play" viewBox="0 0 20 20" aria-hidden="true"><path d="M6 4.2v11.6a.8.8 0 0 0 1.2.7l9.2-5.8a.8.8 0 0 0 0-1.4L7.2 3.5a.8.8 0 0 0-1.2.7z"/></svg>
       <svg class="icon icon-pause" viewBox="0 0 20 20" aria-hidden="true"><rect x="5" y="4" width="3.4" height="12" rx="1"/><rect x="11.6" y="4" width="3.4" height="12" rx="1"/></svg>
@@ -55,54 +63,54 @@
     </button>
     <button id="speed" class="quiet">מהירות 1×</button>
     <div class="steps-wrap">
-      <span class="steps-title">שלבים</span>
-      <nav id="steps" class="steps" aria-label="שלבים"></nav>
+      <span class="steps-title" data-i18n="steps">שלבים</span>
+      <nav id="steps" class="steps" data-i18n-aria="steps" aria-label="שלבים"></nav>
     </div>
     <button id="add-step">
       <svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      שלב
+      <span data-i18n="step.add">שלב</span>
     </button>
-    <button id="delete-step" class="quiet">מחק שלב</button>
-    <button id="video-play" title="יצירת סרטון מהמהלך לשיתוף">
+    <button id="delete-step" class="quiet" data-i18n="step.delete">מחק שלב</button>
+    <button id="video-play" data-i18n-title="video.hint" title="יצירת סרטון מהמהלך לשיתוף">
       <svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="5" width="11" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M13.5 9l4-2.4v6.8l-4-2.4z"/></svg>
-      סרטון
+      <span data-i18n="video">סרטון</span>
     </button>
     <button id="save-play">
       <svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 3h8.6L17 6.4V16a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><rect x="6.5" y="11" width="7" height="4" rx=".6"/></svg>
-      שמור
+      <span data-i18n="save">שמור</span>
     </button>
   </footer>
 
   <div id="scrim" class="scrim" hidden></div>
-  <aside id="library" class="drawer" aria-label="ספריית מהלכים" hidden>
+  <aside id="library" class="drawer" data-i18n-aria="library.title" aria-label="ספריית מהלכים" hidden>
     <div class="drawer-head">
-      <h2>ספריית מהלכים</h2>
-      <button id="lib-close" class="quiet">סגור</button>
+      <h2 data-i18n="library.title">ספריית מהלכים</h2>
+      <button id="lib-close" class="quiet" data-i18n="close">סגור</button>
     </div>
     <button id="show-save" class="show-save">
       <svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      שמירת המהלך שעל הלוח
+      <span data-i18n="save.show">שמירת המהלך שעל הלוח</span>
     </button>
     <form id="save-form" class="save-form" hidden>
       <label class="field">
-        <span>שמירת המהלך שעל הלוח</span>
-        <input id="save-name" name="name" maxlength="60" autocomplete="off" enterkeyhint="done" placeholder="שם, למשל: 6 על 5 — העברת צד">
+        <span data-i18n="save.show">שמירת המהלך שעל הלוח</span>
+        <input id="save-name" name="name" maxlength="60" autocomplete="off" enterkeyhint="done" data-i18n-placeholder="save.placeholder" placeholder="שם, למשל: 6 על 5 — העברת צד">
       </label>
-      <div id="save-tags" class="chips" role="group" aria-label="תגיות"></div>
+      <div id="save-tags" class="chips" role="group" data-i18n-aria="tags" aria-label="תגיות"></div>
       <div class="save-actions">
-        <button id="save-update" type="button" class="primary" hidden>עדכן את השמור</button>
+        <button id="save-update" type="button" class="primary" hidden data-i18n="save.update">עדכן את השמור</button>
         <button id="save-new" type="submit">שמור בספרייה</button>
       </div>
     </form>
     <div class="lib-tools">
-      <input id="lib-search" type="search" placeholder="חיפוש לפי שם" aria-label="חיפוש מהלך" autocomplete="off">
-      <div id="lib-filter" class="chips" role="group" aria-label="סינון לפי תגית"></div>
+      <input id="lib-search" type="search" autocomplete="off" data-i18n-placeholder="search" placeholder="חיפוש לפי שם" data-i18n-aria="search.label" aria-label="חיפוש מהלך">
+      <div id="lib-filter" class="chips" role="group" data-i18n-aria="filter" aria-label="סינון לפי תגית"></div>
     </div>
     <ul id="lib-list" class="lib-list"></ul>
     <p id="lib-empty" class="empty" hidden></p>
     <div class="drawer-foot">
-      <button id="lib-export" class="quiet">ייצוא גיבוי</button>
-      <button id="lib-import" class="quiet">ייבוא גיבוי</button>
+      <button id="lib-export" class="quiet" data-i18n="export">ייצוא גיבוי</button>
+      <button id="lib-import" class="quiet" data-i18n="import">ייבוא גיבוי</button>
       <input id="lib-file" type="file" accept="application/json,.json" hidden>
     </div>
   </aside>
@@ -121,8 +129,8 @@
       </div>
       <video id="video-preview" class="video-preview" playsinline muted loop hidden></video>
       <div class="video-actions">
-        <button id="video-share" class="primary" hidden>שתף</button>
-        <button id="video-save" hidden>שמור לקובץ</button>
+        <button id="video-share" class="primary" hidden data-i18n="video.share">שתף</button>
+        <button id="video-save" hidden data-i18n="video.saveFile">שמור לקובץ</button>
         <button id="video-close" class="quiet">ביטול</button>
       </div>
     </div>

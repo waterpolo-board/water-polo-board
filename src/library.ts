@@ -1,10 +1,24 @@
 // ספריית מהלכים: טיפוסים ולוגיקה טהורה (חיפוש, ייצוא, ייבוא). האחסון עצמו ב-db.ts.
+import { t } from "./i18n";
 import { clone, type Play } from "./model";
 import { cleanLabels, isValidPlay } from "./storage";
 
-export const TAGS = ["התקפה", "הגנה", "יתרון מספרי", "חסרון מספרי", "פתיחה", "תרגיל"] as const;
+// תגיות נשמרות כמזהה קבוע; השם המוצג מגיע מהמילון לפי השפה
+export const TAGS = ["attack", "defense", "manUp", "manDown", "start", "drill"] as const;
 export type Tag = (typeof TAGS)[number];
-const isTag = (t: unknown): t is Tag => TAGS.includes(t as Tag);
+
+/** תגיות ממהלכים שנשמרו לפני שהיו שפות (בעברית). */
+const LEGACY_TAGS: Record<string, Tag> = {
+  "התקפה": "attack", "הגנה": "defense", "יתרון מספרי": "manUp", "חסרון מספרי": "manDown", "פתיחה": "start", "תרגיל": "drill",
+};
+
+export function normalizeTags(raw: unknown): Tag[] {
+  if (!Array.isArray(raw)) return [];
+  const out = raw
+    .map((x) => (TAGS.includes(x as Tag) ? (x as Tag) : LEGACY_TAGS[x as string]))
+    .filter((x): x is Tag => !!x);
+  return [...new Set(out)];
+}
 
 export interface SavedPlay {
   id: string;
@@ -21,7 +35,7 @@ export const newId = () =>
 export const cleanName = (name: string) => name.replace(/\s+/g, " ").trim().slice(0, 60);
 
 export function createEntry(name: string, tags: Tag[], play: Play, now = Date.now()): SavedPlay {
-  return { id: newId(), name: cleanName(name) || "מהלך ללא שם", tags: [...new Set(tags)], play: clone(play), createdAt: now, updatedAt: now };
+  return { id: newId(), name: cleanName(name) || t("untitled"), tags: [...new Set(tags)], play: clone(play), createdAt: now, updatedAt: now };
 }
 
 /** החדשים למעלה. החיפוש לפי שם, בלי תלות ברווחים מיותרים. */
@@ -34,9 +48,10 @@ export function filterPlays(list: SavedPlay[], query = "", tag: Tag | null = nul
 
 /** שם פנוי לעותק: "X (עותק)", "X (עותק 2)"... */
 export function copyName(name: string, taken: string[]): string {
-  const base = `${name} (עותק)`;
+  const word = t("copy");
+  const base = `${name} (${word})`;
   if (!taken.includes(base)) return base;
-  for (let i = 2; ; i++) if (!taken.includes(`${name} (עותק ${i})`)) return `${name} (עותק ${i})`;
+  for (let i = 2; ; i++) if (!taken.includes(`${name} (${word} ${i})`)) return `${name} (${word} ${i})`;
 }
 
 // ---------- גיבוי ----------
@@ -63,8 +78,8 @@ export function parseImport(text: string): SavedPlay[] | null {
     const now = Date.now();
     out.push({
       id: raw.id,
-      name: cleanName(raw.name) || "מהלך ללא שם",
-      tags: Array.isArray(raw.tags) ? raw.tags.filter(isTag) : [],
+      name: cleanName(raw.name) || t("untitled"),
+      tags: normalizeTags(raw.tags),
       play: raw.play,
       createdAt: Number.isFinite(raw.createdAt) ? raw.createdAt! : now,
       updatedAt: Number.isFinite(raw.updatedAt) ? raw.updatedAt! : now,

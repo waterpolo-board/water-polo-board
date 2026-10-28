@@ -1,6 +1,7 @@
 // מהלכי דוגמה שנכנסים לספרייה בפתיחה הראשונה, כדי שהמאמן יראה מיד איך זה עובד.
 import { formation } from "./formations";
 import { clone, type Drawing, type ModeId, type Play, type Pos, type Step } from "./model";
+import { t, type Key } from "./i18n";
 import { createEntry, type SavedPlay, type Tag } from "./library";
 
 type XY = [number, number];
@@ -26,10 +27,10 @@ function build(mode: ModeId, specs: StepSpec[]): Play {
 }
 
 // השער הכחול ב-x = 25, בין y = 8.5 ל-11.5
-const EXAMPLES: Array<{ name: string; tags: Tag[]; play: Play }> = [
+const EXAMPLES: Array<{ name: Key; tags: Tag[]; play: Play }> = [
   {
-    name: "דוגמה · 6 על 5 — העברת צד וזריקה מהכנף",
-    tags: ["יתרון מספרי", "התקפה"],
+    name: "example.1",
+    tags: ["manUp", "attack"],
     play: build("6v5", [
       { draw: [["pass", [18.4, 7.6], [19, 12.3]]] },
       { ball: [18.5, 12.9], move: { b3: [20.6, 10.6] }, draw: [["pass", [18.6, 13.2], [22.2, 17.3]]] },
@@ -38,8 +39,8 @@ const EXAMPLES: Array<{ name: string; tags: Tag[]; play: Play }> = [
     ]),
   },
   {
-    name: "דוגמה · 6 על 5 — מסירה לעמדה",
-    tags: ["יתרון מספרי", "התקפה"],
+    name: "example.2",
+    tags: ["manUp", "attack"],
     play: build("6v5", [
       { draw: [["move", [22.65, 12.45], [22.45, 11.95]], ["pass", [18.7, 7.8], [22.2, 10.8]]] },
       { move: { w7: [22.4, 11.9] }, ball: [22.6, 10.9], draw: [["pass", [22.8, 11], [24.9, 11.1]]] },
@@ -47,8 +48,8 @@ const EXAMPLES: Array<{ name: string; tags: Tag[]; play: Play }> = [
     ]),
   },
   {
-    name: "דוגמה · 6 על 6 — חדירה מהשטוח",
-    tags: ["התקפה"],
+    name: "example.3",
+    tags: ["attack"],
     play: build("6v6", [
       { draw: [["move", [19, 5], [21.4, 6.8]]] },
       { move: { w3: [21.6, 7], b3: [20.6, 6] }, draw: [["pass", [16.6, 9.8], [21, 7.6]]] },
@@ -60,5 +61,5 @@ const EXAMPLES: Array<{ name: string; tags: Tag[]; play: Play }> = [
 
 export function examplePlays(now = Date.now()): SavedPlay[] {
   // זמנים מדורגים כדי שהסדר בספרייה יישאר קבוע
-  return EXAMPLES.map((e, i) => createEntry(e.name, e.tags, e.play, now - i * 1000));
+  return EXAMPLES.map((e, i) => createEntry(t(e.name), e.tags, e.play, now - i * 1000));
 }

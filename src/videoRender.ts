@@ -1,5 +1,6 @@
 // ציור פריים של סרטון על canvas: אותה שפה חזותית כמו הלוח, בלי תלות ב-SVG או ב-CSS.
 import { POOL, cameraFor, distance, type Camera, type Size } from "./geometry";
+import { isRtl, t } from "./i18n";
 import { MODE_VIEW, ROSTER, capOf, type Play } from "./model";
 import type { Scene } from "./timeline";
 
@@ -187,22 +188,24 @@ export function createPainter(ctx: CanvasRenderingContext2D, play: Play, title: 
   }
 
   function chrome(scene: Scene) {
-    ctx.direction = "rtl";
+    // בעברית השם מימין והשלב משמאל; באנגלית ובסרבית הפוך
+    const rtl = isRtl();
+    ctx.direction = rtl ? "rtl" : "ltr";
     ctx.textBaseline = "middle";
-    ctx.textAlign = "right";
+    ctx.textAlign = rtl ? "right" : "left";
     ctx.fillStyle = pal.ink;
     ctx.font = `600 30px ${font}`;
-    ctx.fillText(title, width - 32, header / 2 + 4, width * 0.62);
-    ctx.textAlign = "left";
+    ctx.fillText(title, rtl ? width - 32 : 32, header / 2 + 4, width * 0.62);
+    ctx.textAlign = rtl ? "left" : "right";
     ctx.fillStyle = pal.inkSoft;
     ctx.font = `400 22px ${font}`;
-    ctx.fillText(`שלב ${scene.step + 1} מתוך ${play.steps.length}`, 32, header / 2 + 4);
+    ctx.fillText(t("video.stepOf", { n: scene.step + 1, total: play.steps.length }), rtl ? 32 : width - 32, header / 2 + 4);
     // נקודות התקדמות בין השלבים
     const n = play.steps.length;
     for (let i = 0; i < n; i++) {
       ctx.fillStyle = i <= scene.step ? pal.accent : alpha(pal.inkSoft, 0.35);
       ctx.beginPath();
-      ctx.arc(width / 2 + (n - 1) * 11 - i * 22, height - 12, 5, 0, Math.PI * 2); // מימין לשמאל, בתחתית
+      ctx.arc(width / 2 + (rtl ? 1 : -1) * ((n - 1) * 11 - i * 22), height - 12, 5, 0, Math.PI * 2); // בכיוון הקריאה, בתחתית
       ctx.fill();
     }
     ctx.direction = "ltr";

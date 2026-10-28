@@ -2,6 +2,7 @@
 // דרך ראשית: WebCodecs (H.264) דרך Mediabunny — מהיר מזמן אמת וחלק בכל מכשיר.
 // גיבוי: MediaRecorder בזמן אמת, למכשירים בלי מקודד H.264 ב-WebCodecs.
 import { BufferTarget, CanvasSource, Mp4OutputFormat, Output, Quality, canEncodeVideo } from "mediabunny";
+import { t } from "./i18n";
 import type { Play } from "./model";
 import { buildTimeline } from "./timeline";
 import { VIDEO, createPainter, readPalette } from "./videoRender";
@@ -61,7 +62,7 @@ export async function exportVideo(
   function encodeRecorder(): Promise<VideoResult> {
     const types = ["video/mp4;codecs=avc1.42E01F", "video/mp4;codecs=avc1", "video/mp4", "video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm"];
     const mimeType = types.find((t) => typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported(t));
-    if (!mimeType) return Promise.reject(new Error("המכשיר הזה לא תומך ביצירת סרטונים"));
+    if (!mimeType) return Promise.reject(new Error(t("video.unsupported")));
 
     const stream = canvas.captureStream(VIDEO.fps);
     const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 4_000_000 });
@@ -77,7 +78,7 @@ export async function exportVideo(
         const isMp4 = mimeType.startsWith("video/mp4");
         resolve({ blob: new Blob(chunks, { type: isMp4 ? "video/mp4" : "video/webm" }), ext: isMp4 ? "mp4" : "webm", method: "recorder" });
       };
-      recorder.onerror = () => reject(new Error("ההקלטה נכשלה"));
+      recorder.onerror = () => reject(new Error(t("video.recordFailed")));
       signal.addEventListener("abort", () => recorder.state !== "inactive" && recorder.stop(), { once: true });
 
       painter.paint(timeline.sceneAt(0));
@@ -95,6 +96,6 @@ export async function exportVideo(
   }
 }
 
-/** שם קובץ בטוח (עברית מותרת). */
+/** שם קובץ בטוח (כל שפה מותרת). */
 export const videoFileName = (title: string, ext: string) =>
-  `${title.replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 60) || "מהלך"}.${ext}`;
+  `${title.replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 60) || t("play.default")}.${ext}`;

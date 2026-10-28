@@ -221,3 +221,13 @@ input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .video-preview { width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; background: var(--deck); }
 .video-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .video-actions .primary { min-width: 120px; }
+
+/* ---------- כיוון לפי שפה ---------- */
+/* בעברית המגירה נכנסת מימין; באנגלית ובסרבית משמאל */
+[dir="ltr"] .drawer { transform: translateX(-104%); box-shadow: 12px 0 40px #0006; }
+[dir="ltr"] .drawer.open { transform: none; }
+[dir="ltr"] .video-bar { transform-origin: left; }
+
+/* ---------- בורר שפה ---------- */
+.group.lang button { min-width: 44px; padding: 0 10px; font-size: 0.85rem; letter-spacing: 0.02em; }
+.title .group.lang { margin-inline-start: 4px; }

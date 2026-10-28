@@ -7,6 +7,7 @@ import { History } from "./history";
 import { CAP_NUMBERS, MODE_VIEW, ROSTER, capOf, clone, isModeId, withCapNumber, type Drawing, type DrawingKind, type ModeId, type Play, type Step } from "./model";
 import { ease, prefersReducedMotion, tween, wait, type Tween } from "./motion";
 import { frameBetween, frameOf, transitionDuration, type Frame, type PoseLike } from "./playback";
+import { LANGS, LANG_LABEL, applyStatic, getLang, onLangChange, setLang, t } from "./i18n";
 import { initLibrary, toast } from "./libraryUi";
 import { shareVideo } from "./videoUi";
 import type { SavedPlay } from "./library";
@@ -309,13 +310,13 @@ function openCapPicker(id: string) {
   pickerFor = id;
   const spec = ROSTER.find((r) => r.id === id)!;
   const current = capOf(play, id);
-  pickerTitle.textContent = `${spec.team === "w" ? "לבנים" : "כחולים"}${spec.goalie ? " · שוער" : ""} · כרגע ${current}`;
+  pickerTitle.textContent = [t(spec.team === "w" ? "team.w" : "team.b"), ...(spec.goalie ? [t("goalie")] : []), t("picker.current", { n: current })].join(" · ");
   const taken = new Set(ROSTER.filter((r) => r.team === spec.team && r.id !== id).map((r) => capOf(play, r.id)));
   for (const b of pickerGrid.querySelectorAll<HTMLButtonElement>(".cap-num")) {
     const n = Number(b.dataset.n);
     b.setAttribute("aria-pressed", String(n === current));
     b.classList.toggle("taken", taken.has(n)); // תפוס = יתחלף עם חבר הקבוצה
-    b.title = taken.has(n) ? "יתחלף עם השחקן שיש לו את המספר הזה" : "";
+    b.title = taken.has(n) ? t("picker.swap") : "";
   }
   picker.hidden = false;
   // ליד הכובע, בתוך המסך
@@ -370,9 +371,9 @@ function renderUi() {
   $<HTMLButtonElement>("#delete-step").disabled = play.steps.length < 2;
   playBtn.disabled = play.steps.length < 2;
   playBtn.classList.toggle("is-playing", playing);
-  playBtn.querySelector(".label")!.textContent = playing ? "עצור" : "הפעל מהלך";
+  playBtn.querySelector(".label")!.textContent = playing ? t("stop") : t("play");
   document.body.classList.toggle("is-playing", playing);
-  speedBtn.textContent = `מהירות ${speed}×`;
+  speedBtn.textContent = t("speed", { s: speed });
 
   // שם המהלך הפתוח, וסימון אם יש שינויים שעוד לא נשמרו
   const saved = library?.entry(libraryId);
@@ -380,7 +381,7 @@ function renderUi() {
   playName.hidden = !saved;
   const dirty = !!saved && JSON.stringify(saved.play) !== JSON.stringify(play);
   playName.classList.toggle("dirty", dirty);
-  playName.title = dirty ? "יש שינויים שלא נשמרו" : "";
+  playName.title = dirty ? t("unsaved") : "";
 
   // כפתורי שלבים: משתמשים מחדש בקיימים כדי לא לשבור אנימציות
   const chips = [...stepsNav.children] as HTMLButtonElement[];
@@ -395,7 +396,7 @@ function renderUi() {
   chips.forEach((b, i) => {
     b.dataset.index = String(i);
     b.textContent = String(i + 1);
-    b.setAttribute("aria-label", `שלב ${i + 1}`);
+    b.setAttribute("aria-label", t("step.n", { n: i + 1 }));
     if (i === cur) b.setAttribute("aria-current", "step");
     else b.removeAttribute("aria-current");
   });
@@ -442,6 +443,28 @@ const motionQuery = matchMedia("(prefers-reduced-motion: reduce)");
 board.reducedMotion = motionQuery.matches;
 motionQuery.addEventListener("change", () => (board.reducedMotion = motionQuery.matches));
 
+// ---------- שפה ----------
+const langSwitch = $<HTMLElement>("#lang-switch");
+for (const l of LANGS) {
+  const b = document.createElement("button");
+  b.dataset.lang = l;
+  b.lang = l;
+  b.textContent = LANG_LABEL[l];
+  b.addEventListener("click", () => setLang(l));
+  langSwitch.append(b);
+}
+const syncLangButtons = () => {
+  for (const b of langSwitch.querySelectorAll<HTMLButtonElement>("button")) b.setAttribute("aria-pressed", String(b.dataset.lang === getLang()));
+};
+onLangChange(() => {
+  syncLangButtons();
+  closeCapPicker();
+  library?.refresh();
+  renderUi();
+});
+applyStatic();
+syncLangButtons();
+
 // ---------- פתיחה ----------
 let library: Awaited<ReturnType<typeof initLibrary>> | null = null;
 
@@ -463,9 +486,9 @@ initLibrary({
   $("#open-library").addEventListener("click", () => lib.openPanel());
   $("#save-play").addEventListener("click", () => lib.openPanel(true));
   $("#video-play").addEventListener("click", () => {
-    if (play.steps.length < 2) return toast("לסרטון צריך לפחות שני שלבים — הוסיפו שלב עם \"+ שלב\"");
+    if (play.steps.length < 2) return toast(t("toast.videoNeedsSteps"));
     stopPlayback();
-    shareVideo(clone(play), lib.entry(libraryId)?.name ?? "מהלך");
+    shareVideo(clone(play), lib.entry(libraryId)?.name ?? t("play.default"));
   });
   renderUi();
 });
